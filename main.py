@@ -1,32 +1,74 @@
 import discord
+from discord.ext import commands
+import random
 import os
+from bot_youtube import Music
+from config import CHAT_PREFIX
 
 client = discord.Client()
 token_discord = os.environ['DISCORD_TOKEN']
 
+description = '''An example bot to showcase the discord.ext.commands extension
+module.
+There are a number of utility commands being showcased here.'''
 
-@client.event
+intents = discord.Intents.default()
+intents.members = True
+
+bot = commands.Bot(command_prefix=CHAT_PREFIX, description=description, intents=intents)
+
+@bot.event
 async def on_ready():
-    print('Estamos online como {0.user}. Exemplo'.format(client))
+    print('Logged in as')
+    print(bot.user.name)
+    print(bot.user.id)
+    print('------')
 
+@bot.command()
+async def add(ctx, left: int, right: int):
+    """Adds two numbers together."""
+    await ctx.send(left + right)
 
-@client.event
-async def on_message(message):
-    if message.author == client.user:
-      return
+@bot.command()
+async def roll(ctx, dice: str):
+    """Rolls a dice in NdN format."""
+    try:
+        rolls, limit = map(int, dice.split('d'))
+    except Exception:
+        await ctx.send('Format has to be in NdN!')
+        return
 
-    if message.content.startswith('!kids-hello'):
-      await message.channel.send('Hello!')
-    
-    if message.content.startswith('!kids-mensagem'):
-      mensagem = str(message.content).replace('!kids-mensagem ', '')
-      await message.channel.send(mensagem)
+    result = ', '.join(str(random.randint(1, limit)) for r in range(rolls))
+    await ctx.send(result)
 
-    if message.content.startswith('!kids-somar 2+2'):
-      mensagem = str(message.content).replace('!kids-somar ', '')
-      mensagem = mensagem.split('+')
-      numero1 = int(mensagem[0])
-      numero2 = int(mensagem[1])
-      await message.channel.send(str(numero1+numero2))
+@bot.command(description='For when you wanna settle the score some other way')
+async def choose(ctx, *choices: str):
+    """Chooses between multiple choices."""
+    await ctx.send(random.choice(choices))
 
-client.run(token_discord)
+@bot.command()
+async def repeat(ctx, times: int, content='repeating...'):
+    """Repeats a message multiple times."""
+    for i in range(times):
+        await ctx.send(content)
+
+@bot.command()
+async def joined(ctx, member: discord.Member):
+    """Says when a member joined."""
+    await ctx.send(f'{member.name} joined in {member.joined_at}')
+
+@bot.group()
+async def cool(ctx):
+    """Says if a user is cool.
+    In reality this just checks if a subcommand is being invoked.
+    """
+    if ctx.invoked_subcommand is None:
+        await ctx.send(f'No, {ctx.subcommand_passed} is not cool')
+
+@cool.command(name='bot')
+async def _bot(ctx):
+    """Is the bot cool?"""
+    await ctx.send('Yes, the bot is cool.')
+
+bot.add_cog(Music(bot))
+bot.run(token_discord)
