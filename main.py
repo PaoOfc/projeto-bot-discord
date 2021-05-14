@@ -15,7 +15,7 @@ There are a number of utility commands being showcased here.'''
 intents = discord.Intents.default()
 intents.members = True
 
-bot = commands.Bot(command_prefix=CHAT_PREFIX, description=description, intents=intents)
+bot = commands.Bot(command_prefix=CHAT_PREFIX, description=description,  intents=intents)
 
 @bot.event
 async def on_ready():
