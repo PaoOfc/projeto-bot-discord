@@ -7,7 +7,7 @@ token_discord = os.environ['DISCORD_TOKEN']
 
 @client.event
 async def on_ready():
-    print('Estamos online como {0.user}'.format(client))
+    print('Estamos online como {0.user}. Exemplo'.format(client))
 
 
 @client.event
